@@ -1738,10 +1738,25 @@ function drawWatermark(canvas,img,settings){
     var N = mW * mH;
     var alpha = new Float32Array(N);
     for(var i=0;i<N;i++) alpha[i] = Math.max(0, Math.min(1, raw[i]));
+    var rawAlpha = alpha.slice(); // keep a copy of the model's raw confidence for the final edge check
 
-    // Slight edge definition pass
-    var soft = rbgBoxBlur(alpha, mW, mH, 1);
-    for(var j=0;j<N;j++) if(soft[j]<0.05) alpha[j] *= 0.4;
+    // 1) Despeckle: a 3x3 median filter removes isolated single-pixel confidence noise —
+    //    this is the main source of "spots" inside uniformly dark/black regions, where the
+    //    model's raw confidence is naturally noisier due to low local contrast.
+    alpha = rbgMedianFilter3(alpha, mW, mH);
+
+    // 2) Fill interior holes: any remaining low-confidence pixel that's surrounded by
+    //    high-confidence foreground neighbors gets snapped back up — this specifically
+    //    repairs the case that was causing visible holes on solid black clothing/objects.
+    alpha = rbgFillInteriorHoles(alpha, mW, mH);
+
+    // 3) Gentle smoothing for soft, natural-looking edges (does not suppress alpha).
+    alpha = rbgBoxBlur(alpha, mW, mH, 1);
+
+    // 4) Safe edge cleanup: only pull alpha down where the ORIGINAL raw confidence was
+    //    already low too — this cleans up true background fringe without re-introducing
+    //    holes in confident interior regions.
+    for(var j=0;j<N;j++){ if(rawAlpha[j] < 0.06 && alpha[j] < 0.3) alpha[j] *= 0.4; }
 
     var c = document.createElement('canvas'); c.width=iW; c.height=iH;
     var ctx = c.getContext('2d');
@@ -1758,6 +1773,50 @@ function drawWatermark(canvas,img,settings){
     }
     ctx.putImageData(imgD,0,0);
     return c;
+  }
+
+  function rbgMedianFilter3(src,w,h){
+    var out = new Float32Array(w*h);
+    var win = new Array(9);
+    for(var y=0;y<h;y++){
+      for(var x=0;x<w;x++){
+        var n=0;
+        for(var dy=-1;dy<=1;dy++){
+          var ny=Math.min(h-1,Math.max(0,y+dy));
+          for(var dx=-1;dx<=1;dx++){
+            var nx=Math.min(w-1,Math.max(0,x+dx));
+            win[n++]=src[ny*w+nx];
+          }
+        }
+        win.sort(function(a,b){return a-b;});
+        out[y*w+x]=win[4];
+      }
+    }
+    return out;
+  }
+
+  function rbgFillInteriorHoles(src,w,h){
+    var out = src.slice();
+    var r=2;
+    for(var y=0;y<h;y++){
+      for(var x=0;x<w;x++){
+        var idx=y*w+x;
+        if(src[idx] > 0.5) continue; // only patch pixels currently reading as low-confidence
+        var sum=0,count=0,highCount=0;
+        for(var dy=-r;dy<=r;dy++){
+          var ny=y+dy; if(ny<0||ny>=h) continue;
+          for(var dx=-r;dx<=r;dx++){
+            if(dx===0&&dy===0) continue;
+            var nx=x+dx; if(nx<0||nx>=w) continue;
+            var v=src[ny*w+nx];
+            sum+=v; count++;
+            if(v>0.85) highCount++;
+          }
+        }
+        if(count>0 && (highCount/count) > 0.75) out[idx]=sum/count;
+      }
+    }
+    return out;
   }
 
   function rbgBilerp(arr,w,h,x,y){
