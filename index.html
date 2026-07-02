@@ -183,6 +183,15 @@ main{ max-width: 1180px; margin: 0 auto; padding: 0 24px 100px; }
 .sig-drag-box{ position: absolute; cursor: grab; border: 1.5px dashed var(--accent); border-radius: 4px; background: rgba(255,77,46,.06); touch-action: none; }
 .sig-drag-box:active{ cursor: grabbing; }
 .sig-drag-box img{ width: 100%; height: 100%; display: block; pointer-events: none; }
+#ep-preview-wrap{ cursor: crosshair; }
+#ep-items-layer{ position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+.ep-text-item{ position: absolute; border: 1.5px dashed transparent; border-radius: 3px; padding: 1px 3px; white-space: pre; line-height: 1.15; cursor: grab; user-select: none; touch-action: none; }
+.ep-text-item:hover{ border-color: rgba(255,77,46,.55); background: rgba(255,77,46,.06); }
+.ep-text-item.selected{ border-color: var(--accent); background: rgba(255,77,46,.10); }
+.ep-text-item.new-item{ background: rgba(46,140,255,.08); }
+.ep-existing-hit{ position: absolute; cursor: pointer; }
+.ep-existing-hit:hover{ background: rgba(46,140,255,.14); outline: 1px dashed rgba(46,140,255,.5); }
+#ep-preview-page{ display: block; width: 100%; height: auto; pointer-events: none; }
 #qr-canvas{ image-rendering: pixelated; max-width: 240px; width: 100%; height: auto; background: #fff; }
 
 /* TOAST */
@@ -563,6 +572,7 @@ footer b{ color: rgba(247,242,230,.75); }
 <symbol id="ic-sign" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c2-4 3.5-9 5-9s.5 7 2.5 7 2-5 3.5-5 1 3.5 3 3.5 2-1.5 4-1.5"/><path d="M3 21h18"/></g></symbol>
 <symbol id="ic-pagenum" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/></g><text x="12" y="18" text-anchor="middle" font-size="7" font-weight="700" fill="currentColor" stroke="none" font-family="sans-serif">12</text></symbol>
 <symbol id="ic-redact" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/></g><rect x="8" y="12" width="8" height="3.4" fill="currentColor" stroke="none"/></symbol>
+<symbol id="ic-editpdf" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/><path d="M9 15.5l6-6 2 2-6 6H9v-2z"/></g></symbol>
 </defs>
 </svg>
 
@@ -702,7 +712,7 @@ footer b{ color: rgba(247,242,230,.75); }
       </div>
       <div class="footer-cols">
         <div class="footer-col"><h4>Images</h4><div><a href="#" data-card-link="compress">Compress</a><a href="#" data-card-link="resize">Resize</a><a href="#" data-card-link="crop">Crop</a><a href="#" data-card-link="watermark">Watermark</a><a href="#" data-card-link="removebg">Remove BG</a></div></div>
-        <div class="footer-col"><h4>PDFs</h4><div><a href="#" data-card-link="mergePdf">Merge</a><a href="#" data-card-link="splitPdf">Split</a><a href="#" data-card-link="cropPdf">Crop</a><a href="#" data-card-link="compressPdf">Compress</a></div></div>
+        <div class="footer-col"><h4>PDFs</h4><div><a href="#" data-card-link="mergePdf">Merge</a><a href="#" data-card-link="splitPdf">Split</a><a href="#" data-card-link="cropPdf">Crop</a><a href="#" data-card-link="editPdf">Edit</a><a href="#" data-card-link="compressPdf">Compress</a></div></div>
         <div class="footer-col"><h4>Company</h4><div><a href="#" data-legal-link="about">About Us</a><a href="#" data-legal-link="contact">Contact Us</a><a href="#" data-legal-link="faq">FAQ</a></div></div>
         <div class="footer-col"><h4>Legal</h4><div><a href="#" data-legal-link="privacy">Privacy Policy</a><a href="#" data-legal-link="terms">Terms of Service</a><a href="#" data-legal-link="disclaimer">Disclaimer</a></div></div>
       </div>
@@ -1004,19 +1014,20 @@ footer b{ color: rgba(247,242,230,.75); }
     <button class="back-btn" onclick="backToHub()"><svg width="14" height="14"><use href="#ic-back"></use></svg> All tools</button>
     <div class="tool-header" data-key="cropPdf"></div>
     <div class="wcard"><div class="wcard-header"><span class="dot"></span>1 — Upload a PDF</div><div class="wcard-body">
-      <div class="dropzone" id="cp-drop"><div class="drop-icon-wrap"><svg width="22" height="22"><use href="#ic-upload"></use></svg></div><div class="drop-title">Drop a PDF here, or click to browse</div><div class="drop-sub">Page 1 sets the cutout grid — the same regions are applied to every page.</div></div>
+      <div class="dropzone" id="cp-drop"><div class="drop-icon-wrap"><svg width="22" height="22"><use href="#ic-upload"></use></svg></div><div class="drop-title">Drop a PDF here, or click to browse</div><div class="drop-sub">Page 1 sets the cutout regions — the same regions are applied to every page.</div></div>
       <input type="file" id="cp-input" accept="application/pdf">
       <div class="list-label mono" id="cp-count" style="margin-top:10px;"></div>
     </div></div>
     <div class="wcard" id="cp-editor-card" style="display:none;"><div class="wcard-header"><span class="dot"></span>2 — Draw your cutout regions</div><div class="wcard-body">
+      <div class="aspect-row" id="cp-detect-row" style="margin-bottom:12px;"><button class="tab active" data-cpdetect="manual">Manual</button><button class="tab" data-cpdetect="auto">Auto-detect</button></div>
       <div class="canvas-wrap"><canvas id="cp-canvas"></canvas></div>
       <div class="coord-readout" id="cp-readout">0 regions marked</div>
-      <div class="hint">Drag on the page to draw a region. Draw all the pieces you want to cut out — they'll be numbered in order. Drag inside a region to move it, drag its corner to resize it.</div>
-      <div class="action-row"><button class="btn-secondary" id="cp-undo-btn">Undo last region</button><button class="btn-secondary" id="cp-clear-btn">Clear all regions</button></div>
-    </div></div>
-    <div class="wcard" id="cp-mode-card" style="display:none;"><div class="wcard-header"><span class="dot"></span>3 — Choose output mode</div><div class="wcard-body">
-      <div class="aspect-row" id="cp-mode-row"><button class="tab active" data-cpmode="single">Single page crop</button><button class="tab" data-cpmode="stack">Stack crop</button></div>
-      <div class="hint" id="cp-mode-hint">Single page crop: every region becomes its own page, repeated across all pages.</div>
+      <div class="hint" id="cp-hint">Drag on the page to draw a region. Drag a corner or edge handle to resize, drag inside to move. Click a region to select it, then duplicate it to copy its exact size to a new spot.</div>
+      <div class="action-row"><button class="btn-secondary" id="cp-duplicate-btn" disabled>Duplicate selected region</button><button class="btn-secondary" id="cp-undo-btn">Undo last region</button><button class="btn-secondary" id="cp-clear-btn">Clear all regions</button></div>
+      <div class="settings-grid" style="margin-top:14px;">
+        <div class="field"><label>Skip near-blank crops</label><div class="range-row"><input type="range" id="cp-blank-threshold" min="90" max="100" value="99"><span class="range-val" id="cp-blank-threshold-val">99%</span></div></div>
+      </div>
+      <div class="hint">A cropped region is dropped from the output automatically when this much of it is blank/white — raise it to keep faint content, lower it to drop more.</div>
     </div></div>
     <div class="action-row"><button class="btn-primary" id="cp-apply-btn" disabled><div class="spinner" id="cp-spinner"></div><svg width="15" height="15"><use href="#ic-crop"></use></svg><span id="cp-btn-text">Apply crop to all pages</span></button></div>
     <div class="progress-card" id="cp-progress"><div class="progress-top"><span class="progress-status">Cropping...</span><span class="progress-pct" id="cp-progress-pct">0%</span></div><div class="progress-track"><div class="progress-fill" id="cp-progress-fill"></div></div></div>
@@ -1122,6 +1133,39 @@ footer b{ color: rgba(247,242,230,.75); }
     </div></div>
     <div class="action-row"><button class="btn-primary" id="rd-apply-btn" disabled><div class="spinner" id="rd-spinner"></div><svg width="15" height="15"><use href="#ic-redact"></use></svg><span id="rd-btn-text">Redact & download</span></button></div>
     <div class="progress-card" id="rd-progress"><div class="progress-top"><span class="progress-status">Redacting...</span><span class="progress-pct" id="rd-progress-pct">0%</span></div><div class="progress-track"><div class="progress-fill" id="rd-progress-fill"></div></div></div>
+  </div>
+
+  <div class="tool-view" id="view-editPdf">
+    <button class="back-btn" onclick="backToHub()"><svg width="14" height="14"><use href="#ic-back"></use></svg> All tools</button>
+    <div class="tool-header" data-key="editPdf"></div>
+    <div class="wcard"><div class="wcard-header"><span class="dot"></span>1 — Upload a PDF</div><div class="wcard-body">
+      <div class="dropzone" id="ep-drop"><div class="drop-icon-wrap"><svg width="22" height="22"><use href="#ic-upload"></use></svg></div><div class="drop-title">Drop a PDF here, or click to browse</div><div class="drop-sub">Click any existing text to change it, or click empty space to add new text.</div></div>
+      <input type="file" id="ep-input" accept="application/pdf">
+      <div class="list-label mono" id="ep-count" style="margin-top:10px;"></div>
+    </div></div>
+    <div class="wcard" id="ep-editor-card" style="display:none;"><div class="wcard-header"><span class="dot"></span>2 — Click text to edit, or click blank space to add text</div><div class="wcard-body">
+      <div class="aspect-row" id="ep-page-nav" style="margin-bottom:12px;">
+        <button class="btn-secondary" id="ep-prev-btn">&larr; Prev page</button>
+        <span class="list-label mono" id="ep-page-indicator" style="align-self:center;">Page 1</span>
+        <button class="btn-secondary" id="ep-next-btn">Next page &rarr;</button>
+      </div>
+      <div class="sig-preview-wrap" id="ep-preview-wrap" style="width:100%;">
+        <img id="ep-preview-page" alt="Page preview">
+        <div id="ep-items-layer"></div>
+      </div>
+      <div class="hint" id="ep-hint">Click on existing text to edit it in place, or click any blank area to drop in new text. Drag any text box to reposition it.</div>
+    </div></div>
+    <div class="wcard" id="ep-props-card" style="display:none;"><div class="wcard-header"><span class="dot"></span>3 — Text formatting</div><div class="wcard-body">
+      <div class="field"><label>Content</label><textarea id="ep-text-input" rows="2" style="width:100%; font-family: inherit; font-size:14px; padding:10px; border-radius:8px; border:1px solid var(--line); background: var(--paper-soft); color: var(--ink); resize:vertical;"></textarea></div>
+      <div class="settings-grid" style="margin-top:12px;">
+        <div class="field"><label>Font</label><select id="ep-font"><option value="Helvetica">Helvetica</option><option value="TimesRoman">Times Roman</option><option value="Courier">Courier</option></select></div>
+        <div class="field"><label>Size</label><div class="range-row"><input type="range" id="ep-size" min="6" max="72" value="14"><span class="range-val" id="ep-size-val">14</span></div></div>
+        <div class="field"><label>Colour</label><input type="color" id="ep-color" value="#1c1714"></div>
+        <div class="field"><label>Style</label><div class="aspect-row" style="margin:0;"><button class="tab" id="ep-bold-btn"><b>B</b></button><button class="tab" id="ep-italic-btn"><i>I</i></button></div></div>
+      </div>
+      <div class="action-row" style="margin-top:14px;"><button class="btn-secondary" id="ep-delete-item-btn">Delete this text</button></div>
+    </div></div>
+    <div class="action-row"><button class="btn-primary" id="ep-apply-btn" disabled><div class="spinner" id="ep-spinner"></div><svg width="15" height="15"><use href="#ic-editpdf"></use></svg><span id="ep-btn-text">Save changes & download</span></button></div>
   </div>
 
   <div class="tool-view" id="view-crop">
@@ -1319,11 +1363,12 @@ var CARD_META = {
   organizePdf:    { title:'Organize PDF',      icon:'ic-organize',  category:'pdf',      kind:'custom',  desc:'Reorder, rotate, delete, or number the pages in a PDF using a visual page grid, then export.' },
   signPdf:        { title:'Sign PDF',          icon:'ic-sign',      category:'pdf',      kind:'custom',  desc:'Draw your signature and drop it onto the last page — or every page — of a PDF.' },
   pageNumbersPdf: { title:'Page Numbers',      icon:'ic-pagenum',   category:'pdf',      kind:'custom',  desc:'Stamp page numbers onto every page of a PDF — pick the position, starting number and format.' },
-  redactPdf:      { title:'Redact PDF',        icon:'ic-redact',    category:'pdf',      kind:'custom',  desc:'Draw black-out boxes over sensitive text or images and permanently flatten the page so nothing can be recovered.' }
+  redactPdf:      { title:'Redact PDF',        icon:'ic-redact',    category:'pdf',      kind:'custom',  desc:'Draw black-out boxes over sensitive text or images and permanently flatten the page so nothing can be recovered.' },
+  editPdf:        { title:'Edit PDF',          icon:'ic-editpdf',   category:'pdf',      kind:'custom',  desc:'Click existing text to change it, or add brand-new text anywhere — full control over font, size, bold/italic and colour.' }
 };
 
 var CARD_ORDER_IMG = ['compress','resize','crop','convertToJpg','convertFromJpg','rotate','watermark','removebg','meme','photoeditor','blur','html2img','upscale','qrcode','palette'];
-var CARD_ORDER_PDF = ['mergePdf','imgToPdf','organizePdf','splitPdf','rotatePdf','pdfToJpg','watermarkPdf','signPdf','pageNumbersPdf','redactPdf','cropPdf','compressPdf'];
+var CARD_ORDER_PDF = ['mergePdf','imgToPdf','organizePdf','splitPdf','rotatePdf','pdfToJpg','watermarkPdf','signPdf','editPdf','pageNumbersPdf','redactPdf','cropPdf','compressPdf'];
 var currentMode = 'image';
 
 function headerHtml(meta){ return '<div class="card-icon"><svg><use href="#'+meta.icon+'"></use></svg></div><div><h2>'+esc(meta.title)+'</h2><p>'+esc(meta.desc)+'</p></div>'; }
@@ -2399,26 +2444,216 @@ function wireSinglePdfDropzone(dropzoneEl,inputEl,onFile){ dropzoneEl.addEventLi
 
 /* ---- CROP PDF ---- */
 (function(){
-  var dropzone=$('#cp-drop'),input=$('#cp-input'),editorCard=$('#cp-editor-card'),modeCard=$('#cp-mode-card'),canvas=$('#cp-canvas'),ctx=canvas.getContext('2d'),readout=$('#cp-readout'),applyBtn=$('#cp-apply-btn'),btnText=$('#cp-btn-text'),spinner=$('#cp-spinner'),progressCard=$('#cp-progress'),progressFill=$('#cp-progress-fill'),progressPct=$('#cp-progress-pct'),resultsSection=$('#cp-results'),statsGrid=$('#cp-stats'),modeRow=$('#cp-mode-row'),modeHint=$('#cp-mode-hint');
-  var pdfBytes=null,fileName='document',pageCount=0,previewImg=null,regions=[],drawingRect=null,dragState=null,outputMode='single';
-  var MODE_HINTS={single:'Single page crop: every region becomes its own page repeated across all pages.',stack:'Stack crop: all marked regions stay together on one tight page per source page.'};
-  modeRow.addEventListener('click',function(e){ var btn=e.target.closest('.tab'); if(!btn) return; $all('.tab',modeRow).forEach(function(t){ t.classList.remove('active'); }); btn.classList.add('active'); outputMode=btn.dataset.cpmode; modeHint.textContent=MODE_HINTS[outputMode]; btnText.textContent=outputMode==='single'?'Apply crop to all pages':'Apply stack crop to all pages'; });
-  function render(){ ctx.clearRect(0,0,canvas.width,canvas.height); if(previewImg) ctx.drawImage(previewImg,0,0,canvas.width,canvas.height); regions.forEach(function(r,i){ ctx.fillStyle='rgba(255,77,46,0.12)'; ctx.fillRect(r.x,r.y,r.w,r.h); ctx.strokeStyle='#ff4d2e'; ctx.lineWidth=2; ctx.strokeRect(r.x,r.y,r.w,r.h); ctx.fillStyle='#ff4d2e'; ctx.fillRect(r.x,r.y,22,18); ctx.fillStyle='#fff'; ctx.font='bold 12px Inter, sans-serif'; ctx.fillText(String(i+1),r.x+7,r.y+13); ctx.fillStyle='#ff4d2e'; ctx.fillRect(r.x+r.w-7,r.y+r.h-7,7,7); }); if(drawingRect){ ctx.strokeStyle='#ff4d2e'; ctx.lineWidth=2; ctx.setLineDash([5,4]); ctx.strokeRect(drawingRect.x,drawingRect.y,drawingRect.w,drawingRect.h); ctx.setLineDash([]); } readout.textContent=regions.length+' region'+(regions.length!==1?'s':'')+' marked'+(regions.length?' — drawn order used for output ordering':''); applyBtn.disabled=regions.length===0; modeCard.style.display=regions.length?'block':'none'; }
-  function getPos(e){ var r=canvas.getBoundingClientRect(); return {x:Math.max(0,Math.min(canvas.width,(e.touches?e.touches[0].clientX:e.clientX)-r.left*(canvas.width/r.width))),y:Math.max(0,Math.min(canvas.height,(e.touches?e.touches[0].clientY:e.clientY)-r.top*(canvas.height/r.height)))}; }
-  function hitTest(p){ for(var i=regions.length-1;i>=0;i--){ var r=regions[i]; var onHandle=Math.abs(p.x-(r.x+r.w))<10&&Math.abs(p.y-(r.y+r.h))<10; if(onHandle) return {index:i,mode:'resize'}; if(p.x>=r.x&&p.x<=r.x+r.w&&p.y>=r.y&&p.y<=r.y+r.h) return {index:i,mode:'move'}; } return null; }
-  canvas.addEventListener('pointerdown',function(e){ if(!previewImg) return; var p=getPos(e); var hit=hitTest(p); if(hit){ dragState={index:hit.index,mode:hit.mode,startX:p.x,startY:p.y,orig:Object.assign({},regions[hit.index])}; } else { drawingRect={x:p.x,y:p.y,w:0,h:0,startX:p.x,startY:p.y}; } canvas.setPointerCapture(e.pointerId); });
-  canvas.addEventListener('pointermove',function(e){ if(!previewImg) return; var p=getPos(e); if(drawingRect){ drawingRect.x=Math.min(p.x,drawingRect.startX); drawingRect.y=Math.min(p.y,drawingRect.startY); drawingRect.w=Math.abs(p.x-drawingRect.startX); drawingRect.h=Math.abs(p.y-drawingRect.startY); render(); } else if(dragState){ var dx=p.x-dragState.startX,dy=p.y-dragState.startY,r=regions[dragState.index],o=dragState.orig; if(dragState.mode==='move'){ r.x=Math.max(0,Math.min(canvas.width-r.w,o.x+dx)); r.y=Math.max(0,Math.min(canvas.height-r.h,o.y+dy)); } else { r.w=Math.max(12,Math.min(canvas.width-r.x,o.w+dx)); r.h=Math.max(12,Math.min(canvas.height-r.y,o.h+dy)); } render(); } });
-  ['pointerup','pointercancel','pointerleave'].forEach(function(ev){ canvas.addEventListener(ev,function(){ if(drawingRect&&drawingRect.w>14&&drawingRect.h>14) regions.push({x:drawingRect.x,y:drawingRect.y,w:drawingRect.w,h:drawingRect.h}); drawingRect=null; dragState=null; render(); }); });
-  $('#cp-undo-btn').addEventListener('click',function(){ regions.pop(); render(); });
-  $('#cp-clear-btn').addEventListener('click',function(){ regions=[]; render(); });
-  wireSinglePdfDropzone(dropzone,input,async function(file){ fileName=file.name.replace(/\.[^.]+$/,''); regions=[]; resultsSection.style.display='none'; pdfBytes=await readFileAsArrayBuffer(file); try{ var libDoc=await PDFLib.PDFDocument.load(pdfBytes); pageCount=libDoc.getPageCount(); }catch(e){ toast('Could not read that PDF.'); return; } $('#cp-count').textContent=file.name+' — '+pageCount+' page'+(pageCount!==1?'s':''); try{ if(typeof pdfjsLib==='undefined') throw new Error('PDF preview library not loaded'); var loadingTask=pdfjsLib.getDocument({data:pdfBytes.slice(0)}); var pdfDoc=await loadingTask.promise; var page=await pdfDoc.getPage(1); var baseViewport=page.getViewport({scale:1}); var scale=900/baseViewport.width; var viewport=page.getViewport({scale:scale}); var c=document.createElement('canvas'); c.width=Math.round(viewport.width); c.height=Math.round(viewport.height); await page.render({canvasContext:c.getContext('2d'),viewport:viewport}).promise; previewImg=c; canvas.width=c.width; canvas.height=c.height; }catch(e){ toast('Could not render a preview of this PDF.'); return; } editorCard.style.display='block'; render(); });
+  var dropzone=$('#cp-drop'),input=$('#cp-input'),editorCard=$('#cp-editor-card'),canvas=$('#cp-canvas'),ctx=canvas.getContext('2d'),readout=$('#cp-readout'),applyBtn=$('#cp-apply-btn'),spinner=$('#cp-spinner'),progressCard=$('#cp-progress'),progressFill=$('#cp-progress-fill'),progressPct=$('#cp-progress-pct'),resultsSection=$('#cp-results'),statsGrid=$('#cp-stats'),detectRow=$('#cp-detect-row'),hintEl=$('#cp-hint'),dupBtn=$('#cp-duplicate-btn'),blankSlider=$('#cp-blank-threshold'),blankVal=$('#cp-blank-threshold-val');
+  var pdfBytes=null,fileName='document',pageCount=0,previewImg=null,regions=[],drawingRect=null,dragState=null,selectedIndex=-1,detectMode='manual';
+  var HANDLE_R=9; // px hit radius for a resize handle
+  var HINTS={ manual:"Drag on the page to draw a region. Drag a corner or edge handle to resize, drag inside to move. Click a region to select it, then duplicate it to copy its exact size to a new spot.", auto:"Regions were auto-detected from the page's content blocks — drag any handle to fine-tune, or draw new ones manually." };
+
+  blankSlider.addEventListener('input', function(){ blankVal.textContent=blankSlider.value+'%'; });
+
+  detectRow.addEventListener('click', function(e){
+    var btn=e.target.closest('.tab'); if(!btn) return;
+    $all('.tab',detectRow).forEach(function(t){ t.classList.remove('active'); }); btn.classList.add('active');
+    detectMode=btn.dataset.cpdetect; hintEl.textContent=HINTS[detectMode];
+    if(detectMode==='auto' && previewImg) runAutoDetect();
+  });
+
+  function handlesFor(r){
+    var mx=r.x+r.w/2, my=r.y+r.h/2;
+    return [
+      {id:'nw',x:r.x,y:r.y,cursor:'nwse-resize'},{id:'n',x:mx,y:r.y,cursor:'ns-resize'},{id:'ne',x:r.x+r.w,y:r.y,cursor:'nesw-resize'},
+      {id:'w',x:r.x,y:my,cursor:'ew-resize'},{id:'e',x:r.x+r.w,y:my,cursor:'ew-resize'},
+      {id:'sw',x:r.x,y:r.y+r.h,cursor:'nesw-resize'},{id:'s',x:mx,y:r.y+r.h,cursor:'ns-resize'},{id:'se',x:r.x+r.w,y:r.y+r.h,cursor:'nwse-resize'}
+    ];
+  }
+
+  function render(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(previewImg) ctx.drawImage(previewImg,0,0,canvas.width,canvas.height);
+    regions.forEach(function(r,i){
+      var sel=i===selectedIndex;
+      ctx.fillStyle=sel?'rgba(255,77,46,0.20)':'rgba(255,77,46,0.10)';
+      ctx.fillRect(r.x,r.y,r.w,r.h);
+      ctx.strokeStyle='#ff4d2e'; ctx.lineWidth=sel?2.6:2; ctx.strokeRect(r.x,r.y,r.w,r.h);
+      ctx.fillStyle='#ff4d2e'; ctx.fillRect(r.x,r.y,22,18);
+      ctx.fillStyle='#fff'; ctx.font='bold 12px Inter, sans-serif'; ctx.fillText(String(i+1),r.x+7,r.y+13);
+      if(sel){ handlesFor(r).forEach(function(h){ ctx.beginPath(); ctx.arc(h.x,h.y,6,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle='#ff4d2e'; ctx.stroke(); }); }
+    });
+    if(drawingRect){ ctx.strokeStyle='#ff4d2e'; ctx.lineWidth=2; ctx.setLineDash([5,4]); ctx.strokeRect(drawingRect.x,drawingRect.y,drawingRect.w,drawingRect.h); ctx.setLineDash([]); }
+    readout.textContent=regions.length+' region'+(regions.length!==1?'s':'')+' marked'+(regions.length?' — numbered in reading order for output':'');
+    applyBtn.disabled=regions.length===0;
+    dupBtn.disabled=selectedIndex<0;
+  }
+
+  function getPos(e){ var r=canvas.getBoundingClientRect(); var sx=canvas.width/r.width, sy=canvas.height/r.height; return {x:Math.max(0,Math.min(canvas.width,((e.touches?e.touches[0].clientX:e.clientX)-r.left)*sx)),y:Math.max(0,Math.min(canvas.height,((e.touches?e.touches[0].clientY:e.clientY)-r.top)*sy))}; }
+
+  function hitTest(p){
+    if(selectedIndex>=0){
+      var sr=regions[selectedIndex];
+      var hs=handlesFor(sr);
+      for(var h=0;h<hs.length;h++){ if(Math.hypot(p.x-hs[h].x,p.y-hs[h].y)<=HANDLE_R) return {index:selectedIndex,mode:'resize',handle:hs[h].id}; }
+    }
+    for(var i=regions.length-1;i>=0;i--){ var r=regions[i]; if(p.x>=r.x&&p.x<=r.x+r.w&&p.y>=r.y&&p.y<=r.y+r.h) return {index:i,mode:'move'}; }
+    return null;
+  }
+
+  function applyResize(r,o,handle,dx,dy){
+    var x0=o.x,y0=o.y,x1=o.x+o.w,y1=o.y+o.h;
+    if(handle.indexOf('w')>=0) x0=Math.min(x1-12,o.x+dx);
+    if(handle.indexOf('e')>=0) x1=Math.max(x0+12,o.x+o.w+dx);
+    if(handle.indexOf('n')>=0) y0=Math.min(y1-12,o.y+dy);
+    if(handle.indexOf('s')>=0) y1=Math.max(y0+12,o.y+o.h+dy);
+    x0=Math.max(0,x0); y0=Math.max(0,y0); x1=Math.min(canvas.width,x1); y1=Math.min(canvas.height,y1);
+    r.x=x0; r.y=y0; r.w=x1-x0; r.h=y1-y0;
+  }
+
+  canvas.addEventListener('pointerdown',function(e){
+    if(!previewImg) return; var p=getPos(e); var hit=hitTest(p);
+    if(hit){ selectedIndex=hit.index; dragState={index:hit.index,mode:hit.mode,handle:hit.handle,startX:p.x,startY:p.y,orig:Object.assign({},regions[hit.index])}; render(); }
+    else { selectedIndex=-1; drawingRect={x:p.x,y:p.y,w:0,h:0,startX:p.x,startY:p.y}; render(); }
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointermove',function(e){
+    if(!previewImg) return; var p=getPos(e);
+    if(drawingRect){ drawingRect.x=Math.min(p.x,drawingRect.startX); drawingRect.y=Math.min(p.y,drawingRect.startY); drawingRect.w=Math.abs(p.x-drawingRect.startX); drawingRect.h=Math.abs(p.y-drawingRect.startY); render(); }
+    else if(dragState){
+      var dx=p.x-dragState.startX,dy=p.y-dragState.startY,r=regions[dragState.index],o=dragState.orig;
+      if(dragState.mode==='move'){ r.x=Math.max(0,Math.min(canvas.width-r.w,o.x+dx)); r.y=Math.max(0,Math.min(canvas.height-r.h,o.y+dy)); }
+      else { applyResize(r,o,dragState.handle,dx,dy); }
+      render();
+    } else {
+      var hit=hitTest(p); canvas.style.cursor = hit ? (hit.mode==='resize' ? (handlesFor(regions[hit.index]).find(function(h){return h.id===hit.handle;})||{}).cursor||'pointer' : 'move') : 'crosshair';
+    }
+  });
+  ['pointerup','pointercancel','pointerleave'].forEach(function(ev){ canvas.addEventListener(ev,function(){ if(drawingRect&&drawingRect.w>14&&drawingRect.h>14){ regions.push({x:drawingRect.x,y:drawingRect.y,w:drawingRect.w,h:drawingRect.h}); selectedIndex=regions.length-1; } drawingRect=null; dragState=null; render(); }); });
+
+  dupBtn.addEventListener('click', function(){
+    if(selectedIndex<0) return; var src=regions[selectedIndex];
+    var nx=Math.min(canvas.width-src.w, src.x+src.w+16); var ny=src.y;
+    if(nx<=src.x){ nx=src.x; ny=Math.min(canvas.height-src.h, src.y+src.h+16); }
+    var copy={x:nx,y:ny,w:src.w,h:src.h};
+    regions.push(copy); selectedIndex=regions.length-1; render();
+    toast('Region duplicated — drag it into place.');
+  });
+  $('#cp-undo-btn').addEventListener('click',function(){ regions.pop(); if(selectedIndex>=regions.length) selectedIndex=regions.length-1; render(); });
+  $('#cp-clear-btn').addEventListener('click',function(){ regions=[]; selectedIndex=-1; render(); });
+
+  // Auto-detect content blocks via whitespace projection: find row bands separated by
+  // near-blank horizontal gaps, then within each row band find column gaps.
+  function runAutoDetect(){
+    if(!previewImg) return;
+    var w=canvas.width,h=canvas.height;
+    var off=document.createElement('canvas'); off.width=w; off.height=h;
+    var octx=off.getContext('2d'); octx.drawImage(previewImg,0,0,w,h);
+    var data=octx.getImageData(0,0,w,h).data;
+    function inkAt(x,y){ var idx=(y*w+x)*4; var lum=0.299*data[idx]+0.587*data[idx+1]+0.114*data[idx+2]; return lum<245 ? 1 : 0; }
+    var rowInk=new Array(h).fill(0);
+    for(var y=0;y<h;y++){ var s=0; for(var x=0;x<w;x+=2) s+=inkAt(x,y); rowInk[y]=s; }
+    var rowThresh=Math.max(1,w*0.002);
+    var bands=[]; var inBand=false,bandStart=0,gap=0,minGap=Math.round(h*0.012);
+    for(var yy=0;yy<h;yy++){
+      var hasInk=rowInk[yy]>rowThresh;
+      if(hasInk){ if(!inBand){ inBand=true; bandStart=yy; } gap=0; }
+      else if(inBand){ gap++; if(gap>=minGap){ bands.push([bandStart,yy-gap]); inBand=false; } }
+    }
+    if(inBand) bands.push([bandStart,h-1]);
+    var newRegions=[];
+    bands.forEach(function(band){
+      var by0=band[0],by1=band[1]; if(by1-by0<20) return;
+      var colInk=new Array(w).fill(0);
+      for(var x2=0;x2<w;x2++){ var s2=0; for(var y2=by0;y2<=by1;y2+=2) s2+=inkAt(x2,y2); colInk[x2]=s2; }
+      var colThresh=Math.max(1,(by1-by0)*0.004);
+      var cols=[]; var inCol=false,colStart=0,cgap=0,minCGap=Math.round(w*0.015);
+      for(var xx=0;xx<w;xx++){
+        var hasInk2=colInk[xx]>colThresh;
+        if(hasInk2){ if(!inCol){ inCol=true; colStart=xx; } cgap=0; }
+        else if(inCol){ cgap++; if(cgap>=minCGap){ cols.push([colStart,xx-cgap]); inCol=false; } }
+      }
+      if(inCol) cols.push([colStart,w-1]);
+      cols.forEach(function(col){
+        var cx0=col[0],cx1=col[1]; if(cx1-cx0<20) return;
+        var pad=6;
+        newRegions.push({ x:Math.max(0,cx0-pad), y:Math.max(0,by0-pad), w:Math.min(w,cx1+pad)-Math.max(0,cx0-pad), h:Math.min(h,by1+pad)-Math.max(0,by0-pad) });
+      });
+    });
+    if(!newRegions.length){ toast('Could not auto-detect distinct regions on this page.'); return; }
+    regions=newRegions; selectedIndex=-1; render();
+    toast(newRegions.length+' region'+(newRegions.length!==1?'s':'')+' detected — drag to fine-tune.');
+  }
+
+  wireSinglePdfDropzone(dropzone,input,async function(file){
+    fileName=file.name.replace(/\.[^.]+$/,''); regions=[]; selectedIndex=-1; resultsSection.style.display='none';
+    pdfBytes=await readFileAsArrayBuffer(file);
+    try{ var libDoc=await PDFLib.PDFDocument.load(pdfBytes); pageCount=libDoc.getPageCount(); }catch(e){ toast('Could not read that PDF.'); return; }
+    $('#cp-count').textContent=file.name+' — '+pageCount+' page'+(pageCount!==1?'s':'');
+    try{
+      if(typeof pdfjsLib==='undefined') throw new Error('PDF preview library not loaded');
+      var pdfDoc=await pdfjsLib.getDocument({data:pdfBytes.slice(0)}).promise;
+      var page=await pdfDoc.getPage(1);
+      var baseViewport=page.getViewport({scale:1});
+      var scale=900/baseViewport.width;
+      var viewport=page.getViewport({scale:scale});
+      var c=document.createElement('canvas'); c.width=Math.round(viewport.width); c.height=Math.round(viewport.height);
+      var pctx=c.getContext('2d'); pctx.fillStyle='#ffffff'; pctx.fillRect(0,0,c.width,c.height);
+      await page.render({canvasContext:pctx,viewport:viewport}).promise;
+      previewImg=c; canvas.width=c.width; canvas.height=c.height;
+    }catch(e){ toast('Could not render a preview of this PDF.'); return; }
+    editorCard.style.display='block'; detectMode='manual'; $all('.tab',detectRow).forEach(function(t){t.classList.remove('active');}); detectRow.querySelector('[data-cpdetect="manual"]').classList.add('active'); hintEl.textContent=HINTS.manual; render();
+  });
+
+  // Blank check: render a page at modest resolution and measure the % of near-white pixels in a region.
+  async function regionIsBlank(pdfDoc, pageIndex, region, canvasW, canvasH, thresholdPct){
+    var page=await pdfDoc.getPage(pageIndex+1);
+    var baseViewport=page.getViewport({scale:1});
+    var scale=canvasW/baseViewport.width;
+    var viewport=page.getViewport({scale:scale});
+    var c=document.createElement('canvas'); c.width=Math.round(viewport.width); c.height=Math.round(viewport.height);
+    var cctx=c.getContext('2d'); cctx.fillStyle='#ffffff'; cctx.fillRect(0,0,c.width,c.height);
+    await page.render({canvasContext:cctx,viewport:viewport}).promise;
+    var rx=Math.max(0,Math.round(region.x)), ry=Math.max(0,Math.round(region.y));
+    var rw=Math.min(c.width-rx,Math.round(region.w)), rh=Math.min(c.height-ry,Math.round(region.h));
+    if(rw<=0||rh<=0) return true;
+    var data=cctx.getImageData(rx,ry,rw,rh).data;
+    var total=rw*rh,white=0;
+    for(var i=0;i<data.length;i+=4){ var lum=0.299*data[i]+0.587*data[i+1]+0.114*data[i+2]; if(lum>248) white++; }
+    return (white/total)*100 >= thresholdPct;
+  }
+
   applyBtn.addEventListener('click',async function(){
     if(!pdfBytes||!regions.length) return; if(typeof PDFLib==='undefined'){ toast('PDF library failed to load.'); return; }
     spinner.style.display='block'; applyBtn.disabled=true; progressCard.style.display='block'; resultsSection.style.display='none';
-    try{ var srcDoc=await PDFLib.PDFDocument.load(pdfBytes); var outDoc=await PDFLib.PDFDocument.create(); var srcW=srcDoc.getPage(0).getWidth(),srcH=srcDoc.getPage(0).getHeight(),scaleX=srcW/canvas.width,scaleY=srcH/canvas.height; var sorted=regions.map(function(r,i){ return Object.assign({originalIndex:i},r); }); sorted.sort(function(a,b){ if(Math.abs(a.y-b.y)>Math.min(a.h,b.h)*0.5) return a.y-b.y; return a.x-b.x; }); var pdfRegions=sorted.map(function(r){ var pdfX=r.x*scaleX,pdfW=r.w*scaleX,pdfH=r.h*scaleY,pdfY=srcH-(r.y*scaleY)-pdfH; return {x:pdfX,y:pdfY,w:pdfW,h:pdfH}; }); var embeddedPages=await outDoc.embedPdf(pdfBytes,Array.from({length:pageCount},function(_,i){ return i; })); var totalOutputPages=0,n=pageCount;
-    if(outputMode==='single'){ for(var p=0;p<n;p++){ var embedded=embeddedPages[p]; for(var ri=0;ri<pdfRegions.length;ri++){ var reg=pdfRegions[ri]; var newPage=outDoc.addPage([reg.w,reg.h]); newPage.drawPage(embedded,{x:-reg.x,y:-reg.y,width:srcW,height:srcH}); totalOutputPages++; } var pct=Math.round(((p+1)/n)*100); progressFill.style.width=pct+'%'; progressPct.textContent=pct+'%'; await new Promise(function(r){ setTimeout(r,0); }); } }
-    else { var gap=10,stackW=Math.max.apply(null,pdfRegions.map(function(r){ return r.w; })),stackH=pdfRegions.reduce(function(sum,r){ return sum+r.h; },0)+gap*(pdfRegions.length-1); for(var p2=0;p2<n;p2++){ var embedded2=embeddedPages[p2]; var newPage2=outDoc.addPage([stackW,stackH]); var cursorY=stackH; for(var rj=0;rj<pdfRegions.length;rj++){ var reg2=pdfRegions[rj]; cursorY-=reg2.h; newPage2.drawPage(embedded2,{x:-reg2.x,y:cursorY-reg2.y,width:srcW,height:srcH}); cursorY-=gap; } totalOutputPages++; var pct2=Math.round(((p2+1)/n)*100); progressFill.style.width=pct2+'%'; progressPct.textContent=pct2+'%'; await new Promise(function(r){ setTimeout(r,0); }); } }
-    var outBytes=await outDoc.save(); var suffix=outputMode==='single'?'-cropped-single.pdf':'-cropped-stacked.pdf'; triggerDownload(new Blob([outBytes],{type:'application/pdf'}),fileName+suffix); statsGrid.innerHTML='<div class="stat-card"><div class="stat-value">'+n+'</div><div class="stat-label">Source pages</div></div><div class="stat-card"><div class="stat-value">'+regions.length+'</div><div class="stat-label">Regions/page</div></div><div class="stat-card"><div class="stat-value">'+totalOutputPages+'</div><div class="stat-label">Output pages</div></div>'; resultsSection.style.display='block'; toast('Cropped PDF ready!'); }catch(e){ console.error(e); toast('Error cropping PDF.'); }
+    try{
+      var srcDoc=await PDFLib.PDFDocument.load(pdfBytes);
+      var outDoc=await PDFLib.PDFDocument.create();
+      var srcW=srcDoc.getPage(0).getWidth(),srcH=srcDoc.getPage(0).getHeight(),scaleX=srcW/canvas.width,scaleY=srcH/canvas.height;
+      var sorted=regions.map(function(r,i){ return Object.assign({originalIndex:i},r); });
+      sorted.sort(function(a,b){ if(Math.abs(a.y-b.y)>Math.min(a.h,b.h)*0.5) return a.y-b.y; return a.x-b.x; });
+      var pdfRegions=sorted.map(function(r){ var pdfX=r.x*scaleX,pdfW=r.w*scaleX,pdfH=r.h*scaleY,pdfY=srcH-(r.y*scaleY)-pdfH; return {x:pdfX,y:pdfY,w:pdfW,h:pdfH,canvasX:r.x,canvasY:r.y,canvasW:r.w,canvasH:r.h}; });
+      var embeddedPages=await outDoc.embedPdf(pdfBytes,Array.from({length:pageCount},function(_,i){ return i; }));
+      var detectDoc=null;
+      try{ if(typeof pdfjsLib!=='undefined') detectDoc=await pdfjsLib.getDocument({data:pdfBytes.slice(0)}).promise; }catch(e){}
+      var thresholdPct=parseInt(blankSlider.value,10);
+      var totalOutputPages=0,skippedBlank=0,n=pageCount;
+      for(var p=0;p<n;p++){
+        var embedded=embeddedPages[p];
+        for(var ri=0;ri<pdfRegions.length;ri++){
+          var reg=pdfRegions[ri];
+          var blank=false;
+          if(detectDoc){ try{ blank=await regionIsBlank(detectDoc,p,{x:reg.canvasX,y:reg.canvasY,w:reg.canvasW,h:reg.canvasH},canvas.width,canvas.height,thresholdPct); }catch(e){ blank=false; } }
+          if(blank){ skippedBlank++; continue; }
+          var newPage=outDoc.addPage([reg.w,reg.h]);
+          newPage.drawPage(embedded,{x:-reg.x,y:-reg.y,width:srcW,height:srcH});
+          totalOutputPages++;
+        }
+        var pct=Math.round(((p+1)/n)*100); progressFill.style.width=pct+'%'; progressPct.textContent=pct+'%';
+        await new Promise(function(r){ setTimeout(r,0); });
+      }
+      var outBytes=await outDoc.save();
+      triggerDownload(new Blob([outBytes],{type:'application/pdf'}),fileName+'-cropped.pdf');
+      statsGrid.innerHTML='<div class="stat-card"><div class="stat-value">'+n+'</div><div class="stat-label">Source pages</div></div><div class="stat-card"><div class="stat-value">'+regions.length+'</div><div class="stat-label">Regions/page</div></div><div class="stat-card"><div class="stat-value">'+totalOutputPages+'</div><div class="stat-label">Output pages</div></div><div class="stat-card"><div class="stat-value">'+skippedBlank+'</div><div class="stat-label">Blank pages skipped</div></div>';
+      resultsSection.style.display='block';
+      toast('Cropped PDF ready!');
+    }catch(e){ console.error(e); toast('Error cropping PDF.'); }
     spinner.style.display='none'; applyBtn.disabled=false; progressCard.style.display='none';
   });
 })();
@@ -2660,6 +2895,243 @@ function wireSinglePdfDropzone(dropzoneEl,inputEl,onFile){ dropzoneEl.addEventLi
       toast('PDF redacted!');
     }catch(e){ console.error(e); toast('Error redacting PDF.'); }
     spinner.style.display='none'; applyBtn.disabled=false; progressCard.style.display='none';
+  });
+})();
+
+/* ---- EDIT PDF ---- */
+(function(){
+  var dropzone=$('#ep-drop'),input=$('#ep-input'),editorCard=$('#ep-editor-card'),propsCard=$('#ep-props-card'),applyBtn=$('#ep-apply-btn'),spinner=$('#ep-spinner');
+  var previewWrap=$('#ep-preview-wrap'),previewPageImg=$('#ep-preview-page'),itemsLayer=$('#ep-items-layer');
+  var prevBtn=$('#ep-prev-btn'),nextBtn=$('#ep-next-btn'),pageIndicator=$('#ep-page-indicator');
+  var textInput=$('#ep-text-input'),fontSelect=$('#ep-font'),sizeSlider=$('#ep-size'),sizeVal=$('#ep-size-val'),colorInput=$('#ep-color'),boldBtn=$('#ep-bold-btn'),italicBtn=$('#ep-italic-btn'),deleteBtn=$('#ep-delete-item-btn');
+  var pdfBytes=null,fileName='document',pdfDoc=null,pageCount=0,currentPage=0,pageDims={},itemsByPage={},selected=null,nextId=1;
+  var CSS_FONT={Helvetica:'Helvetica, Arial, sans-serif',TimesRoman:'"Times New Roman", Times, serif',Courier:'"Courier New", Courier, monospace'};
+
+  function pageItems(){ if(!itemsByPage[currentPage]) itemsByPage[currentPage]={items:[],editedRunIds:{}}; return itemsByPage[currentPage]; }
+
+  function fracToPx(frac,total){ return frac*total; }
+
+  function itemFontSizePx(){ var wrapW=previewWrap.clientWidth||720; return (wrapW/pageDims.wPt); } // px per pt at current preview scale
+
+  function renderItemNode(item){
+    var node=item._node || document.createElement('div');
+    node.className='ep-text-item'+(item.kind==='new'?' new-item':'')+(selected===item?' selected':'');
+    node.textContent=item.text;
+    var pxPerPt=itemFontSizePx();
+    node.style.left=(item.xFrac*previewWrap.clientWidth)+'px';
+    node.style.top=(item.yFrac*previewWrap.clientHeight)+'px';
+    node.style.fontFamily=CSS_FONT[item.fontFamily]||CSS_FONT.Helvetica;
+    node.style.fontSize=(item.size*pxPerPt)+'px';
+    node.style.color=item.color;
+    node.style.fontWeight=item.bold?'700':'400';
+    node.style.fontStyle=item.italic?'italic':'normal';
+    if(!item._node){
+      itemsLayer.appendChild(node);
+      node.addEventListener('pointerdown', function(e){ e.stopPropagation(); selectItem(item); startDrag(e,item,node); });
+      item._node=node;
+    }
+    return node;
+  }
+
+  function renderAllItems(){
+    itemsLayer.innerHTML='';
+    pageItems().items.forEach(function(item){ item._node=null; renderItemNode(item); });
+  }
+
+  function startDrag(e,item,node){
+    var wrapRect=previewWrap.getBoundingClientRect();
+    var nodeRect=node.getBoundingClientRect();
+    var offX=e.clientX-nodeRect.left, offY=e.clientY-nodeRect.top;
+    var moved=false;
+    function move(ev){
+      moved=true;
+      var nl=ev.clientX-wrapRect.left-offX, nt=ev.clientY-wrapRect.top-offY;
+      nl=Math.max(0,Math.min(wrapRect.width-nodeRect.width,nl));
+      nt=Math.max(0,Math.min(wrapRect.height-nodeRect.height,nt));
+      item.xFrac=nl/wrapRect.width; item.yFrac=nt/wrapRect.height;
+      node.style.left=nl+'px'; node.style.top=nt+'px';
+    }
+    function up(){ document.removeEventListener('pointermove',move); document.removeEventListener('pointerup',up); }
+    document.addEventListener('pointermove',move);
+    document.addEventListener('pointerup',up);
+  }
+
+  function selectItem(item){
+    selected=item;
+    $all('.ep-text-item',itemsLayer).forEach(function(n){ n.classList.remove('selected'); });
+    if(item && item._node) item._node.classList.add('selected');
+    if(!item){ propsCard.style.display='none'; return; }
+    propsCard.style.display='block';
+    textInput.value=item.text;
+    fontSelect.value=item.fontFamily;
+    sizeSlider.value=item.size; sizeVal.textContent=item.size;
+    colorInput.value=item.color;
+    boldBtn.classList.toggle('active',item.bold);
+    italicBtn.classList.toggle('active',item.italic);
+    textInput.focus();
+  }
+
+  function syncSelectedFromProps(){
+    if(!selected) return;
+    selected.text=textInput.value||' ';
+    selected.fontFamily=fontSelect.value;
+    selected.size=parseInt(sizeSlider.value,10);
+    selected.color=colorInput.value;
+    renderItemNode(selected);
+  }
+  [textInput].forEach(function(el){ el.addEventListener('input', syncSelectedFromProps); });
+  fontSelect.addEventListener('change', syncSelectedFromProps);
+  sizeSlider.addEventListener('input', function(){ sizeVal.textContent=sizeSlider.value; syncSelectedFromProps(); });
+  colorInput.addEventListener('input', syncSelectedFromProps);
+  boldBtn.addEventListener('click', function(){ if(!selected) return; selected.bold=!selected.bold; boldBtn.classList.toggle('active',selected.bold); renderItemNode(selected); });
+  italicBtn.addEventListener('click', function(){ if(!selected) return; selected.italic=!selected.italic; italicBtn.classList.toggle('active',selected.italic); renderItemNode(selected); });
+  deleteBtn.addEventListener('click', function(){
+    if(!selected) return;
+    var list=pageItems().items; var idx=list.indexOf(selected);
+    if(idx>=0) list.splice(idx,1);
+    if(selected._node) selected._node.remove();
+    if(selected._runId) delete pageItems().editedRunIds[selected._runId];
+    selected=null; propsCard.style.display='none';
+  });
+
+  function guessFont(fontNameRaw){
+    var n=(fontNameRaw||'').toLowerCase();
+    var family = /times|serif|georgia|garamond/.test(n) ? 'TimesRoman' : (/courier|mono|consolas/.test(n) ? 'Courier' : 'Helvetica');
+    var bold=/bold|black|heavy|semibold/.test(n);
+    var italic=/italic|oblique/.test(n);
+    return {family:family,bold:bold,italic:italic};
+  }
+
+  var currentTextRuns=[]; // hit-target metadata for the current page
+
+  async function buildHitTargets(){
+    itemsLayer.querySelectorAll('.ep-existing-hit').forEach(function(n){ n.remove(); });
+    currentTextRuns=[];
+    try{
+      var page=await pdfDoc.getPage(currentPage+1);
+      var content=await page.getTextContent();
+      var wrapW=previewWrap.clientWidth||720, wrapH=previewWrap.clientHeight||wrapW*(pageDims.hPt/pageDims.wPt);
+      content.items.forEach(function(it,i){
+        if(!it.str || !it.str.trim()) return;
+        var tx=it.transform;
+        var glyphH = it.height || Math.hypot(tx[2],tx[3]) || (Math.abs(tx[0])||10);
+        var x0=tx[4], y0=tx[5];
+        var w=it.width || (Math.abs(tx[0])*it.str.length*0.5);
+        var pdfX=x0, pdfYtop=pageDims.hPt-(y0+glyphH*0.85); // approx top of glyph box, PDF is bottom-up
+        var run={ id:'r'+i, str:it.str, xFrac:pdfX/pageDims.wPt, yFrac:pdfYtop/pageDims.hPt, wFrac:w/pageDims.wPt, hFrac:(glyphH*1.05)/pageDims.hPt, fontName: (content.styles && content.styles[it.fontName] && content.styles[it.fontName].fontFamily) || it.fontName, sizePt: glyphH };
+        currentTextRuns.push(run);
+        var hit=document.createElement('div');
+        hit.className='ep-existing-hit';
+        hit.style.left=(run.xFrac*wrapW)+'px'; hit.style.top=(run.yFrac*wrapH)+'px';
+        hit.style.width=Math.max(6,run.wFrac*wrapW)+'px'; hit.style.height=Math.max(6,run.hFrac*wrapH)+'px';
+        hit.addEventListener('click', function(e){ e.stopPropagation(); onExistingTextClick(run); });
+        itemsLayer.appendChild(hit);
+      });
+    }catch(e){ console.error(e); }
+  }
+
+  function onExistingTextClick(run){
+    var pi=pageItems();
+    if(pi.editedRunIds[run.id]){ selectItem(pi.editedRunIds[run.id]); return; }
+    var g=guessFont(run.fontName);
+    var item={ id:nextId++, kind:'edit', text:run.str, fontFamily:g.family, size:Math.max(6,Math.round(run.sizePt))||14, color:'#1c1714', bold:g.bold, italic:g.italic, xFrac:run.xFrac, yFrac:run.yFrac, wFracOrig:run.wFrac, hFracOrig:run.hFrac, _runId:run.id };
+    pi.editedRunIds[run.id]=item;
+    pi.items.push(item);
+    renderItemNode(item);
+    selectItem(item);
+  }
+
+  previewWrap.addEventListener('click', function(e){
+    if(e.target!==previewWrap && e.target!==previewPageImg && e.target!==itemsLayer) return; // clicked on an item/hit target, handled elsewhere
+    var wrapRect=previewWrap.getBoundingClientRect();
+    var xFrac=(e.clientX-wrapRect.left)/wrapRect.width, yFrac=(e.clientY-wrapRect.top)/wrapRect.height;
+    var item={ id:nextId++, kind:'new', text:'New text', fontFamily:'Helvetica', size:14, color:'#1c1714', bold:false, italic:false, xFrac:xFrac, yFrac:yFrac };
+    pageItems().items.push(item);
+    renderItemNode(item);
+    selectItem(item);
+  });
+
+  async function renderPage(){
+    var page=await pdfDoc.getPage(currentPage+1);
+    var baseViewport=page.getViewport({scale:1});
+    pageDims={wPt:baseViewport.width,hPt:baseViewport.height};
+    var scale=800/baseViewport.width;
+    var viewport=page.getViewport({scale:scale});
+    var c=document.createElement('canvas'); c.width=Math.round(viewport.width); c.height=Math.round(viewport.height);
+    var cctx=c.getContext('2d'); cctx.fillStyle='#ffffff'; cctx.fillRect(0,0,c.width,c.height);
+    await page.render({canvasContext:cctx,viewport:viewport}).promise;
+    previewPageImg.src=c.toDataURL('image/png');
+    pageIndicator.textContent='Page '+(currentPage+1)+' of '+pageCount;
+    prevBtn.disabled=currentPage===0; nextBtn.disabled=currentPage===pageCount-1;
+    selected=null; propsCard.style.display='none';
+    await new Promise(function(resolve){
+      if(previewPageImg.complete) return resolve();
+      previewPageImg.onload=function(){ resolve(); };
+    });
+    await new Promise(function(r){ requestAnimationFrame(r); });
+    renderAllItems();
+    await buildHitTargets();
+  }
+
+  prevBtn.addEventListener('click', function(){ if(currentPage>0){ currentPage--; renderPage(); } });
+  nextBtn.addEventListener('click', function(){ if(currentPage<pageCount-1){ currentPage++; renderPage(); } });
+
+  wireSinglePdfDropzone(dropzone,input,async function(file){
+    fileName=file.name.replace(/\.[^.]+$/,'');
+    pdfBytes=await readFileAsArrayBuffer(file);
+    try{ var libDoc=await PDFLib.PDFDocument.load(pdfBytes); pageCount=libDoc.getPageCount(); }catch(e){ toast('Could not read that PDF.'); return; }
+    $('#ep-count').textContent=file.name+' — '+pageCount+' page'+(pageCount!==1?'s':'');
+    try{
+      if(typeof pdfjsLib==='undefined') throw new Error('PDF preview library not loaded');
+      pdfDoc=await pdfjsLib.getDocument({data:pdfBytes.slice(0)}).promise;
+    }catch(e){ toast('Could not read that PDF.'); return; }
+    currentPage=0; itemsByPage={}; selected=null; nextId=1;
+    editorCard.style.display='block'; applyBtn.disabled=false;
+    await renderPage();
+  });
+
+  function pdfLibFontName(family,bold,italic){
+    if(family==='TimesRoman') return bold&&italic?'TimesRomanBoldItalic':bold?'TimesRomanBold':italic?'TimesRomanItalic':'TimesRoman';
+    if(family==='Courier') return bold&&italic?'CourierBoldOblique':bold?'CourierBold':italic?'CourierOblique':'Courier';
+    return bold&&italic?'HelveticaBoldOblique':bold?'HelveticaBold':italic?'HelveticaOblique':'Helvetica';
+  }
+  function hexToRgb01(hex){ hex=hex.replace('#',''); return {r:parseInt(hex.substr(0,2),16)/255,g:parseInt(hex.substr(2,2),16)/255,b:parseInt(hex.substr(4,2),16)/255}; }
+
+  applyBtn.addEventListener('click', async function(){
+    if(!pdfBytes) return;
+    var anyItems=Object.keys(itemsByPage).some(function(k){ return itemsByPage[k].items.length>0; });
+    if(!anyItems){ toast('Add or edit some text first.'); return; }
+    if(typeof PDFLib==='undefined'){ toast('PDF library failed to load.'); return; }
+    spinner.style.display='block'; applyBtn.disabled=true;
+    try{
+      var doc=await PDFLib.PDFDocument.load(pdfBytes);
+      var pages=doc.getPages();
+      var fontCache={};
+      async function getFont(family,bold,italic){ var key=pdfLibFontName(family,bold,italic); if(!fontCache[key]) fontCache[key]=await doc.embedFont(PDFLib.StandardFonts[key]); return fontCache[key]; }
+      for(var pi in itemsByPage){
+        var pageIndex=parseInt(pi,10);
+        var page=pages[pageIndex];
+        var w=page.getWidth(),h=page.getHeight();
+        var items=itemsByPage[pi].items;
+        for(var i=0;i<items.length;i++){
+          var item=items[i];
+          var font=await getFont(item.fontFamily,item.bold,item.italic);
+          var rgb=hexToRgb01(item.color);
+          if(item.kind==='edit'){
+            var bx=item.xFrac*w, by=h-(item.yFrac*h)-(item.hFracOrig*h), bw=item.wFracOrig*w, bh=item.hFracOrig*h;
+            page.drawRectangle({x:bx-1,y:by-1,width:bw+2,height:bh+2,color:PDFLib.rgb(1,1,1)});
+            page.drawText(item.text,{x:bx,y:by+bh*0.18,size:item.size,font:font,color:PDFLib.rgb(rgb.r,rgb.g,rgb.b)});
+          } else {
+            var nx=item.xFrac*w, ny=h-(item.yFrac*h)-item.size;
+            page.drawText(item.text,{x:nx,y:ny,size:item.size,font:font,color:PDFLib.rgb(rgb.r,rgb.g,rgb.b)});
+          }
+        }
+      }
+      var outBytes=await doc.save();
+      triggerDownload(new Blob([outBytes],{type:'application/pdf'}),fileName+'-edited.pdf');
+      toast('PDF saved!');
+    }catch(e){ console.error(e); toast('Error saving PDF.'); }
+    spinner.style.display='none'; applyBtn.disabled=false;
   });
 })();
 
